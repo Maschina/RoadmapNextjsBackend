@@ -1,7 +1,14 @@
 import Link from "next/link";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
-export default function Home() {
+export default async function Home() {
   const redirectUrl = process.env.REDIRECT_URL || "#";
+  
+  // Check if user is authenticated
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-slate-900 to-slate-800 text-white p-8">
@@ -72,18 +79,31 @@ export default function Home() {
 
         {/* Action Buttons */}
         <div className="flex flex-wrap gap-4 mt-4">
-          <Link
-            href={redirectUrl}
-            className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-semibold rounded-lg transition-all shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40"
-          >
-            Go to Main App →
-          </Link>
-          <Link
-            href="/api/auth/reference"
-            className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-lg transition-all border border-slate-600"
-          >
-            API Documentation
-          </Link>
+          {session ? (
+            <Link
+              href="/dashboard"
+              className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-semibold rounded-lg transition-all shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40"
+            >
+              Go to Dashboard →
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/auth/sign-in"
+                className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-semibold rounded-lg transition-all shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40"
+              >
+                Sign In →
+              </Link>
+              {redirectUrl !== "#" && (
+                <Link
+                  href={redirectUrl}
+                  className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-lg transition-all border border-slate-600"
+                >
+                  Go to Main App →
+                </Link>
+              )}
+            </>
+          )}
         </div>
 
         {/* Footer Note */}

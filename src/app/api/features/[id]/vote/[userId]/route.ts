@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireApiKey } from "@/lib/api-key";
-import { successResponse, errorResponse, VoteStatus, UuidSchema } from "@/types";
+import { successResponse, errorResponse, VoteStatus } from "@/types";
 
 interface RouteParams {
   params: Promise<{ id: string; userId: string }>;
