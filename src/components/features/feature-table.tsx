@@ -19,17 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Pencil, Trash } from "lucide-react";
 import { FeatureDialog } from "./feature-dialog";
-
-interface Feature {
-  id: string;
-  title: string;
-  description: string;
-  status: string;
-  appVersion?: string | null;
-  voteCount: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { Feature } from "@/types";
 
 interface FeatureTableProps {
   features: Feature[];

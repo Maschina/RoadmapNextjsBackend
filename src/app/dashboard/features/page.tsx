@@ -1,98 +1,158 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DashboardHeader } from "@/components/dashboard/header";
 import { FeatureTable } from "@/components/features/feature-table";
 import { FeatureDialog } from "@/components/features/feature-dialog";
 import { toast } from "sonner";
-
-interface Feature {
-  id: string;
-  title: string;
-  description: string;
-  status: string;
-  appVersion?: string | null;
-  voteCount: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import FeatureService from "@/lib/api/features/service";
+import { queryKeys, mutationKeys } from "@/lib/api/queryKeyFactory";
+import { ApiServiceError } from "@/lib/api/api-service-error";
+import type { FeatureCreateRequest, FeatureStatus, FeatureUpdateRequest } from "@/types";
 
 export default function FeaturesPage() {
-  const [features, setFeatures] = useState<Feature[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  const fetchFeatures = async () => {
-    try {
-      const response = await fetch("/api/dashboard/features");
-      if (!response.ok) throw new Error("Failed to fetch features");
-      const data = await response.json();
-      setFeatures(data.data || []);
-    } catch (error) {
-      console.error("Error fetching features:", error);
-      toast.error("Failed to load features");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Fetch features query
+  const {
+    data: features = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: queryKeys.features.list(),
+    queryFn: () => FeatureService.getFeatures(),
+  });
 
-  useEffect(() => {
-    fetchFeatures();
-  }, []);
-
-  const handleCreate = async (featureData: Omit<Feature, "id" | "voteCount" | "createdAt" | "updatedAt">) => {
-    try {
-      const response = await fetch("/api/dashboard/features", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(featureData),
-      });
-
-      if (!response.ok) throw new Error("Failed to create feature");
-
+  // Create feature mutation
+  const createMutation = useMutation({
+    mutationKey: mutationKeys.features.create,
+    mutationFn: (data: FeatureCreateRequest) => FeatureService.createFeature(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.features.all() });
       toast.success("Feature created successfully");
-      fetchFeatures();
-    } catch (error) {
-      console.error("Error creating feature:", error);
-      toast.error("Failed to create feature");
-      throw error;
-    }
-  };
+    },
+    onError: (error) => {
+      if (error instanceof ApiServiceError) {
+        toast.error(error.userMessage);
 
-  const handleUpdate = async (id: string, featureData: Partial<Feature>) => {
-    try {
-      const response = await fetch(`/api/dashboard/features/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(featureData),
-      });
+        if (error.isAuthenticationError()) {
+          toast.error("Please log in again");
+        } else if (error.isAuthorizationError()) {
+          toast.error("You don't have permission to create features");
+        }
+      } else {
+        toast.error("Failed to create feature");
+      }
+    },
+  });
 
-      if (!response.ok) throw new Error("Failed to update feature");
-
+  // Update feature mutation
+  const updateMutation = useMutation({
+    mutationKey: mutationKeys.features.update,
+    mutationFn: ({ id, data }: { id: string; data: FeatureUpdateRequest }) =>
+      FeatureService.updateFeature(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.features.all() });
       toast.success("Feature updated successfully");
-      fetchFeatures();
-    } catch (error) {
-      console.error("Error updating feature:", error);
-      toast.error("Failed to update feature");
-      throw error;
-    }
-  };
+    },
+    onError: (error) => {
+      if (error instanceof ApiServiceError) {
+        toast.error(error.userMessage);
 
-  const handleDelete = async (id: string) => {
-    try {
-      const response = await fetch(`/api/dashboard/features/${id}`, {
-        method: "DELETE",
-      });
+        if (error.isAuthenticationError()) {
+          toast.error("Please log in again");
+        } else if (error.isAuthorizationError()) {
+          toast.error("You don't have permission to update features");
+        } else if (error.isNotFoundError()) {
+          toast.error("Feature not found");
+        }
+      } else {
+        toast.error("Failed to update feature");
+      }
+    },
+  });
 
-      if (!response.ok) throw new Error("Failed to delete feature");
-
+  // Delete feature mutation
+  const deleteMutation = useMutation({
+    mutationKey: mutationKeys.features.delete,
+    mutationFn: (id: string) => FeatureService.deleteFeature(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.features.all() });
       toast.success("Feature deleted successfully");
-      fetchFeatures();
-    } catch (error) {
-      console.error("Error deleting feature:", error);
-      toast.error("Failed to delete feature");
-      throw error;
-    }
+    },
+    onError: (error) => {
+      if (error instanceof ApiServiceError) {
+        toast.error(error.userMessage);
+
+        if (error.isAuthenticationError()) {
+          toast.error("Please log in again");
+        } else if (error.isAuthorizationError()) {
+          toast.error("You don't have permission to delete features");
+        } else if (error.isNotFoundError()) {
+          toast.error("Feature not found");
+        }
+      } else {
+        toast.error("Failed to delete feature");
+      }
+    },
+  });
+
+  // Handle create
+  const handleCreate = async (featureData: {
+    title: string;
+    description: string;
+    status: string;
+    appVersion?: string | null;
+  }) => {
+    const createRequest: FeatureCreateRequest = {
+      title: featureData.title,
+      description: featureData.description,
+      status: featureData.status as FeatureStatus,
+      appVersion: featureData.appVersion,
+    };
+    await createMutation.mutateAsync(createRequest);
   };
+
+  // Handle update
+  const handleUpdate = async (id: string, featureData: {
+    title?: string;
+    description?: string;
+    status?: string;
+    appVersion?: string | null;
+  }) => {
+    const updateRequest: FeatureUpdateRequest = {
+      title: featureData.title,
+      description: featureData.description,
+      status: featureData.status as FeatureStatus,
+      appVersion: featureData.appVersion,
+    };
+    await updateMutation.mutateAsync({ id, data: updateRequest });
+  };
+
+  // Handle delete
+  const handleDelete = async (id: string) => {
+    await deleteMutation.mutateAsync(id);
+  };
+
+  // Show error state
+  if (error) {
+    const errorMessage =
+      error instanceof ApiServiceError ? error.userMessage : "Failed to load features";
+
+    return (
+      <div className="flex h-full flex-col">
+        <DashboardHeader
+          title="Features"
+          description="Manage roadmap features and track votes"
+        />
+        <div className="flex-1 p-6">
+          <div className="flex items-center justify-center p-12">
+            <p className="text-red-500">{errorMessage}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full flex-col">
@@ -111,7 +171,7 @@ export default function FeaturesPage() {
           <FeatureDialog onSave={handleCreate} />
         </div>
 
-        {loading ? (
+        {isLoading ? (
           <div className="flex items-center justify-center p-12">
             <p className="text-muted-foreground">Loading features...</p>
           </div>

@@ -33,6 +33,7 @@ yarn-error.log*
 # env files
 .env.development
 .env.production
+.env.preview
 .env.local
 .env*.local
 # Note: .env.example is committed as a template

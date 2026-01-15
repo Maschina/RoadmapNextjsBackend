@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Home, Key, List, Users, LogOut } from "lucide-react";
+import { Home, Key, Users, LayersPlus } from "lucide-react";
 import { UserButton } from "@daveyplate/better-auth-ui";
 
 const navItems = [
@@ -15,7 +15,7 @@ const navItems = [
   {
     title: "Features",
     href: "/dashboard/features",
-    icon: List,
+    icon: LayersPlus,
   },
   {
     title: "API Keys",
@@ -80,7 +80,7 @@ export function DashboardSidebar() {
 
       <div className="border-t p-4">
         <div className="flex items-center justify-between">
-          <UserButton size="lg" />
+          <UserButton size="default" />
         </div>
       </div>
     </div>

@@ -22,30 +22,30 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus } from "lucide-react";
+import { Feature, FeatureStatus } from "@/types";
 
-interface Feature {
-  id?: string;
+type FeatureFormData = {
   title: string;
   description: string;
-  status: string;
+  status: FeatureStatus;
   appVersion?: string | null;
-}
+};
 
 interface FeatureDialogProps {
-  feature?: Feature;
-  onSave: (feature: Omit<Feature, "id">) => Promise<void>;
+  feature?: Partial<Feature>;
+  onSave: (feature: FeatureFormData) => Promise<void>;
   trigger?: React.ReactNode;
 }
 
-const statuses = ["planned", "in-progress", "completed", "rejected"];
+const statuses: FeatureStatus[] = ["planned", "in-progress", "completed", "rejected"];
 
 export function FeatureDialog({ feature, onSave, trigger }: FeatureDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState<Omit<Feature, "id">>({
+  const [formData, setFormData] = useState<FeatureFormData>({
     title: feature?.title || "",
     description: feature?.description || "",
-    status: feature?.status || "planned",
+    status: (feature?.status as FeatureStatus) || "planned",
     appVersion: feature?.appVersion || "",
   });
 
@@ -125,7 +125,7 @@ export function FeatureDialog({ feature, onSave, trigger }: FeatureDialogProps) 
               <Select
                 value={formData.status}
                 onValueChange={(value) =>
-                  setFormData({ ...formData, status: value })
+                  setFormData({ ...formData, status: value as FeatureStatus })
                 }
               >
                 <SelectTrigger>

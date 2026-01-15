@@ -49,6 +49,20 @@ export interface Feature {
   updatedAt: Date;
 }
 
+export interface FeatureCreateRequest {
+  title: string;
+  description: string;
+  status: FeatureStatus;
+  appVersion?: string | null;
+}
+
+export interface FeatureUpdateRequest {
+  title?: string;
+  description?: string;
+  status?: FeatureStatus;
+  appVersion?: string | null;
+}
+
 // ============================================
 // Vote Types
 // ============================================
@@ -63,6 +77,14 @@ export interface VotedUser {
 export interface VoteStatus {
   hasVoted: boolean;
   votedAt: Date | null;
+}
+
+export interface VoteCreateRequest {
+  userUuid: string;
+}
+
+export interface VoteWithdrawRequest {
+  userUuid: string;
 }
 
 // ============================================
