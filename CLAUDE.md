@@ -81,7 +81,7 @@ DATABASE_URL=postgresql://user:password@localhost:5432/roadmap_db
 
 # Authentication (better-auth)
 BETTER_AUTH_SECRET=your-secret-key
-BETTER_AUTH_URL=http://localhost:3000
+NEXT_PUBLIC_BETTER_AUTH_URL=http://localhost:3000
 
 # API Configuration
 API_KEY_HEADER=x-api-key

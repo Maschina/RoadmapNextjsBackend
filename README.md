@@ -47,7 +47,7 @@ A feature voting system API built with Next.js. Users can vote for product roadm
    Edit `.env.development` with your configuration:
    - `DATABASE_URL`: Your PostgreSQL connection string
    - `BETTER_AUTH_SECRET`: A secure secret key (min 32 characters)
-   - `BETTER_AUTH_URL`: Your app URL (e.g., `http://localhost:3000`)
+   - `NEXT_PUBLIC_BETTER_AUTH_URL`: Your app URL (e.g., `http://localhost:3000`)
    - `REDIRECT_URL`: URL to redirect from the landing page
 
 4. Generate Prisma client:
@@ -128,7 +128,7 @@ Note: The `featureId` is now part of the URL path (`/api/features/:id/vote`), no
 |--------------------|------------------------------------------|----------|
 | DATABASE_URL       | PostgreSQL connection string             | Yes      |
 | BETTER_AUTH_SECRET | Secret key for better-auth (min 32 chars)| Yes      |
-| BETTER_AUTH_URL    | Base URL for authentication              | Yes      |
+| NEXT_PUBLIC_BETTER_AUTH_URL    | Base URL for authentication              | Yes      |
 | API_KEY_HEADER     | Header name for API key (default: x-api-key) | No   |
 | REDIRECT_URL       | URL to redirect from landing page        | Yes      |
 | NODE_ENV           | Environment (development/production)     | Yes      |
